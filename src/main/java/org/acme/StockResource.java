@@ -3,9 +3,9 @@ package org.acme;
 import java.util.Map;
 
 import javax.inject.Inject;
-import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
@@ -25,10 +25,16 @@ public class StockResource {
     }
 
     @GET
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("product")
-    public Integer getQuantity(Product product) {
-        return availableStockService.getAvailableStock(product);
+    @Path("products/{sku}")
+    public Integer getQuantity(@PathParam("sku") String sku) {
+        return availableStockService.getAvailableStock(new Product(sku));
+    }
+    
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("products")
+    public Map<Product, Integer> getQuantity() {
+        return availableStockService.getAllAvailableStock();
     }
 }

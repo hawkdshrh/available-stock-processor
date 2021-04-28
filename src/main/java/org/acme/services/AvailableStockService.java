@@ -16,6 +16,8 @@ import javax.inject.Inject;
 import java.util.Map;
 import java.util.Spliterator;
 import java.util.Spliterators;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -24,6 +26,8 @@ import static org.acme.topology.AvailableStockTopologyProducer.STOCK_AVAILABLE_K
 
 @ApplicationScoped
 public class AvailableStockService {
+    
+    private static final Logger LOGGER = Logger.getLogger("AvailableStockService");
 
     @Inject
     KafkaStreams streams;
@@ -63,6 +67,32 @@ public class AvailableStockService {
     }
 
     public Integer getAvailableStock(Product product) {
-        return productQuantityKeystore != null ? productQuantityKeystore.get(product) : null;
+        
+        if (product == null) {
+            LOGGER.info("No valid product provided"); 
+            return 0;
+        }
+        
+        if (productQuantityKeystore != null) {
+            
+            final KeyValueIterator<Product,Integer> productStock = productQuantityKeystore.all();
+            final Stream<KeyValue<Product,Integer>> productStockStream = StreamSupport.stream(
+                    Spliterators.spliteratorUnknownSize(productStock, Spliterator.ORDERED), false);
+            final Map<Product,Integer> map = productStockStream.collect(
+                    Collectors.toMap(k -> k.key, k -> k.value));
+            productStock.close();
+            
+            LOGGER.log(Level.INFO, "Found keystore; looking up product for {0}", product.getProductSku()); 
+            if(map.containsKey(product)) {
+                LOGGER.info("Found product"); 
+                return map.get(product);
+            } else {
+                LOGGER.info("No matching product found"); 
+                return 0;
+            }
+        } else {
+            LOGGER.info("Keystore not found"); 
+            return 0;
+        }
     }
 }
