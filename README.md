@@ -24,6 +24,7 @@ This app runs a KafkaStreams topology which consumes orders and shipments (from 
 
 * A kafka cluster configured to use OAUTHBEARER authentication.
 * A service account with OAUTHBEARER credentials and an oauth token endpoint.
+* Java 11 or higher (recent versions of Java 8 supporting TLSv3 may work, but will likely require additional configuration)
 
 The following topics are required in your kafka cluster for this app to run:
 * stock-levels
